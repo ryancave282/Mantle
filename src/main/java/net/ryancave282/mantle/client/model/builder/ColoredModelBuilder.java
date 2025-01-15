@@ -1,0 +1,59 @@
+package net.ryancave282.mantle.client.model.builder;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraftforge.client.model.generators.CustomLoaderBuilder;
+import net.minecraftforge.client.model.generators.ModelBuilder;
+import net.minecraftforge.common.data.ExistingFileHelper;
+import net.ryancave282.mantle.client.model.util.ColoredBlockModel;
+import net.ryancave282.mantle.Mantle;
+import net.ryancave282.mantle.client.model.util.ColoredBlockModel.ColorData;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Builder for {@link ColoredBlockModel}, used as a base for other model builders.
+ * @param <T>  Builder type
+ */
+public class ColoredModelBuilder<T extends ModelBuilder<T>> extends CustomLoaderBuilder<T> {
+  private final List<ColorData> colors = new ArrayList<>();
+
+  public ColoredModelBuilder(T parent, ExistingFileHelper existingFileHelper) {
+    this(Mantle.getResource("colored_block"), parent, existingFileHelper);
+  }
+
+  protected ColoredModelBuilder(ResourceLocation loaderId, T parent, ExistingFileHelper existingFileHelper) {
+    super(loaderId, parent, existingFileHelper);
+  }
+
+  /** Adds a full color data for the next element */
+  public ColoredModelBuilder<T> colorData(ColorData data) {
+    colors.add(data);
+    return this;
+  }
+
+  /** Sets the color for the next element */
+  public ColoredModelBuilder<T> color(int color) {
+    return colorData(new ColorData(color, -1, null));
+  }
+
+  /** Sets the luminosity for the next element */
+  public ColoredModelBuilder<T> luminosity(int luminosity) {
+    return colorData(new ColorData(-1, luminosity, null));
+  }
+
+  @Override
+  public JsonObject toJson(JsonObject json) {
+    json = super.toJson(json);
+    if (!colors.isEmpty()) {
+      JsonArray array = new JsonArray();
+      for (ColorData colorData : colors) {
+        array.add(colorData.toJson());
+      }
+      json.add("colors", array);
+    }
+    return json;
+  }
+}

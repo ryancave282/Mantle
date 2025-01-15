@@ -1,0 +1,40 @@
+package net.ryancave282.mantle.network.packet;
+
+import lombok.AllArgsConstructor;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraftforge.network.NetworkEvent;
+import net.ryancave282.mantle.client.book.BookLoader;
+import net.ryancave282.mantle.client.book.data.BookData;
+import net.ryancave282.mantle.command.client.BookCommand;
+
+@AllArgsConstructor
+public class OpenNamedBookPacket implements IThreadsafePacket {
+  private final ResourceLocation book;
+
+  public OpenNamedBookPacket(FriendlyByteBuf buffer) {
+    this.book = buffer.readResourceLocation();
+  }
+
+  @Override
+  public void encode(FriendlyByteBuf buf) {
+    buf.writeResourceLocation(book);
+  }
+
+  @Override
+  public void handleThreadsafe(NetworkEvent.Context context) {
+    BookData bookData = BookLoader.getBook(book);
+    if(bookData != null) {
+      bookData.openGui(Component.literal("Book"), "", null, null);
+    } else {
+      ClientOnly.errorStatus(book);
+    }
+  }
+
+  static class ClientOnly {
+    static void errorStatus(ResourceLocation book) {
+      BookCommand.bookNotFound(book);
+    }
+  }
+}

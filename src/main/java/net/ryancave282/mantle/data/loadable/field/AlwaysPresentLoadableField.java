@@ -1,0 +1,25 @@
+package net.ryancave282.mantle.data.loadable.field;
+
+import net.minecraft.network.FriendlyByteBuf;
+import net.ryancave282.mantle.data.loadable.Loadable;
+import net.ryancave282.mantle.util.typed.TypedMap;
+
+import java.util.function.Function;
+
+/** Common networking logic for loadables that always have a network value */
+public interface AlwaysPresentLoadableField<T,P> extends LoadableField<T,P> {
+  /** Getter for the loadable */
+  Loadable<T> loadable();
+  /** Getter for the given field */
+  Function<P,T> getter();
+
+  @Override
+  default T decode(FriendlyByteBuf buffer, TypedMap context) {
+    return loadable().decode(buffer, context);
+  }
+
+  @Override
+  default void encode(FriendlyByteBuf buffer, P parent) {
+    loadable().encode(buffer, getter().apply(parent));
+  }
+}
